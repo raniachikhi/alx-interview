@@ -1,35 +1,39 @@
 #!/usr/bin/python3
+"""
+Log parsing code
+"""
+
 import sys
-import re
-import signal
 
-def print_statistics():
-    print("File size: {}".format(file_sizes))
-    for code in sorted(status_codes.keys()):
-        print("{}: {}".format(code, status_codes[code]))
+if __name__ == '__main__':
 
-def signal_handler(sig, frame):
-    print_statistics()
-    sys.exit(0)
+    filesize, count = 0, 0
+    codes = ["200", "301", "400", "401", "403", "404", "405", "500"]
+    stats = {k: 0 for k in codes}
 
-signal.signal(signal.SIGINT, signal_handler)
+    def print_stats(stats: dict, file_size: int) -> None:
+        print("File size: {:d}".format(filesize))
+        for k, v in sorted(stats.items()):
+            if v:
+                print("{}: {}".format(k, v))
 
-file_sizes = 0
-status_codes = {}
-line_count = 0
-
-line_pattern = re.compile(r'^\S+ - \[\S+ \S+\] "GET /projects/260 HTTP/1.1" (\d{3}) (\d+)$')
-
-for line in sys.stdin:
-    match = line_pattern.match(line.strip())
-    if match:
-        status_code, file_size = match.groups()
-        file_sizes += int(file_size)
-        status_codes[status_code] = status_codes.get(status_code, 0) + 1
-
-    line_count += 1
-    if line_count % 10 == 0:
-        print_statistics()
-
-print_statistics()
-
+    try:
+        for line in sys.stdin:
+            count += 1
+            data = line.split()
+            try:
+                status_code = data[-2]
+                if status_code in stats:
+                    stats[status_code] += 1
+            except BaseException:
+                pass
+            try:
+                filesize += int(data[-1])
+            except BaseException:
+                pass
+            if count % 10 == 0:
+                print_stats(stats, filesize)
+        print_stats(stats, filesize)
+    except KeyboardInterrupt:
+        print_stats(stats, filesize)
+        raise
