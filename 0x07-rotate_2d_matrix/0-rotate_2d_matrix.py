@@ -1,5 +1,4 @@
-#!/usr/bin/python3
-sh: 1: q: not found
+#!/usr/bin/python
 
 
 def rotate_2d_matrix(matrix):
